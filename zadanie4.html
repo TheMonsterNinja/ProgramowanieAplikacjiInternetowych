@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Interakcja z jQuery</title>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <style>
+    body { font-family: Arial; margin: 30px; }
+    #saldo { font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h2>Konto bankowe – Mateusz</h2>
+<p>Saldo: <span id="saldo">1000 PLN</span></p>
+<button id="toggleBtn">Pokaż/Ukryj saldo</button>
+
+<script>
+  $(document).ready(function(){
+    $("#toggleBtn").click(function(){
+      $("#saldo").toggle();
+    });
+  });
+</script>
+
+</body>
+</html>
