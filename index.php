@@ -1,4 +1,5 @@
 <?php
+// Załączenie klasy i połączenia z bazą przed startem sesji
 require_once 'BankAccount.php';
 require_once 'db.php';
 session_start();
@@ -7,7 +8,7 @@ $saldo = isset($_SESSION['account']) ? $_SESSION['account']->getBalance() : 1000
 $message = $_GET['message'] ?? '';
 $clientName = $_COOKIE['client_name'] ?? '';
 
-// Pobieranie historii transakcji
+// Pobranie historii transakcji jeśli imię jest dostępne
 $transactions = [];
 if ($clientName) {
     $stmt = $conn->prepare("SELECT * FROM transactions WHERE client_name = ? ORDER BY operation_time DESC");
@@ -76,12 +77,38 @@ if ($clientName) {
             text-align: center;
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const nameInput = form.querySelector('input[name="name"]');
+            const amountInput = form.querySelector('input[name="amount"]');
+
+            form.addEventListener('submit', function (e) {
+                const name = nameInput.value.trim();
+                const amount = parseFloat(amountInput.value);
+
+                let errors = [];
+                if (!name) {
+                    errors.push('Wpisz swoje imię.');
+                }
+                if (isNaN(amount) || amount <= 0) {
+                    errors.push('Podaj poprawną kwotę większą od zera.');
+                }
+
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    alert(errors.join('\n'));
+                }
+            });
+        });
+    </script>
 </head>
 <body>
     <div class="container">
         <h1>System Bankowy</h1>
 
         <div class="saldo">
+            <!-- Wyświetlenie aktualnego salda użytkownika -->
             Aktualne saldo: <strong><?= number_format($saldo, 2) ?> PLN</strong>
         </div>
 
@@ -93,6 +120,7 @@ if ($clientName) {
 
         <form method="POST" action="bank.php">
             <label for="name">Imię:</label>
+            <!-- Uzupełnienie imienia użytkownika z ciasteczka jeśli istnieje -->
             <input type="text" name="name" required value="<?= htmlspecialchars($clientName) ?>">
 
             <label for="operation">Operacja:</label>
@@ -102,29 +130,29 @@ if ($clientName) {
             </select>
 
             <label for="amount">Kwota (PLN):</label>
-            <input type="number" name="amount" step="0.01" required>
+            <input type="number" name="amount" step="0.01">
 
             <button type="submit">Wykonaj</button>
         </form>
 
         <?php if (!empty($transactions)): ?>
-            <h2>Historia transakcji</h2>
-            <table>
-                <tr>
-                    <th>Data</th>
-                    <th>Typ</th>
-                    <th>Kwota</th>
-                    <th>Saldo po operacji</th>
-                </tr>
-                <?php foreach ($transactions as $t): ?>
-                <tr>
-                    <td><?= $t['operation_time'] ?></td>
-                    <td><?= $t['operation_type'] ?></td>
-                    <td><?= number_format($t['amount'], 2) ?> PLN</td>
-                    <td><?= number_format($t['balance_after'], 2) ?> PLN</td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
+        <h2>Historia transakcji</h2>
+        <table>
+            <tr>
+                <th>Data</th>
+                <th>Typ</th>
+                <th>Kwota</th>
+                <th>Saldo po operacji</th>
+            </tr>
+            <?php foreach ($transactions as $t): ?>
+            <tr>
+                <td><?= $t['operation_time'] ?></td>
+                <td><?= $t['operation_type'] ?></td>
+                <td><?= number_format($t['amount'], 2) ?> PLN</td>
+                <td><?= number_format($t['balance_after'], 2) ?> PLN</td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
         <?php endif; ?>
     </div>
 </body>
